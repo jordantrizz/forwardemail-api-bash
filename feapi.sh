@@ -16,6 +16,15 @@ _debug () {
         fi
 }
 
+_debug_all () {
+        _debug "--------------------------"
+        _debug "arguments - $@"
+        _debug "funcname - ${FUNCNAME[@]}"
+        _debug "basename - `basename "$0"`"
+        _debug "sourced files - ${BASH_SOURCE[@]}"
+        _debug "--------------------------"
+}
+
 _error () {
         echo -e "${CRED}$@${NC}";
 }
@@ -27,9 +36,9 @@ _success () {
 # -------
 # -- Init
 # -------
-echo "-- Loading $SCRIPT_NAME - v$VERSION"
-. $(dirname "$0")/functions.sh
-_debug "Loading functions.sh"
+#echo "-- Loading $SCRIPT_NAME - v$VERSION"
+#. $(dirname "$0")/functions.sh
+#_debug "Loading functions.sh"
 
 # -- Colors
 export TERM=xterm-color
@@ -64,38 +73,18 @@ _debug_all
 # -- Functions
 # ------------
 
-# -- Help
-help () {
-        if [ ! $1 ]; then
-        	help_intro
-        fi
+# -- usage
+usage () {
+	echo "Usage: $SCRIPT_NAME <list|create>"
+	echo ""
+	echo " Commands"
+	echo "    list   -List aliases"
+	echo "    create <alias> <destination-emails>   -Creates an alias with comma separated destination emals"
+	echo ""
 }
 
-# -- Help introduction
-help_intro () {
-	echo ""
-        echo "$SCRIPT_NAME help"
-        echo "-----------------------------------"
-	for key in "${!help_cmd[@]}"; do
-		 printf '  help %-15s - %-15s\n' "$key" "${help_cmd[$key]}"
-	done
-	echo ""
-        echo "Examples:"
-        echo " --"
-        echo "  gp-tools goaccess"
-	echo "  gp-tools log"
-	echo ""
-
-}
-
-exec_tool () {	
-	_debug "executing - $@"
-	if [[ $(type -t tool_$1) == function ]]; then
-		tool_$1 $@
-	else
-		echo "No command $1"
-		exit
-	fi
+create_alias () {
+	_debug_all
 }
 
 # --------------
@@ -104,11 +93,14 @@ exec_tool () {
 
 args=$@
 if [ ! $1 ]; then
-        help_intro
-else
-	if [ $1 = 'help' ]; then
-			help_intro
-	else
-		exec_tool $@
+        usage
+fi
+
+if [[ $1 == 'create' ]]; then
+	if [[ ! -n $2 ]] || [[ ! -n $3 ]]; then
+		usage
+		exit
 	fi
+	echo "-- Creating alias $2 with emails $3"
+	create_alias $2 $3
 fi
