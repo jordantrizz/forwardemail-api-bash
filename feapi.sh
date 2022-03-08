@@ -3,13 +3,19 @@
 # -- feapi.sh script
 # 
 # -------------------------
+
+# ------------
+# -- Variables
+# ------------
 SCRIPT_NAME=feapi
-VERSION=0.0.1
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+API_URL="https://api.forwardemail.net"
+
 
 # ----------------
 # -- Key Functions
 # ----------------
-
 _debug () {
         if [ -f .debug ];then
                 echo -e "${CCYAN}**** DEBUG $@${NC}"
@@ -20,7 +26,7 @@ _debug_all () {
         _debug "--------------------------"
         _debug "arguments - $@"
         _debug "funcname - ${FUNCNAME[@]}"
-        _debug "basename - `basename "$0"`"
+        _debug "basename - $SCRIPTPATH"
         _debug "sourced files - ${BASH_SOURCE[@]}"
         _debug "--------------------------"
 }
@@ -63,11 +69,17 @@ export CLIGHT_CYAN='\e[1;36m'
 export CLIGHT_GRAY='\e[0;37m'
 export CWHITE='\e[1;37m'
 
-
 # --------
 # -- Debug
 # --------
-_debug_all
+_debug_all $@
+
+if [[ -f $SCRIPTPATH/.test ]]; then
+        _debug "Testing mode on .test in $SCRIPTPATH"
+        TEST=1
+else
+        _debug "Testing mode off no .test in $SCRIPTPATH"
+fi
 
 # ------------
 # -- Functions
@@ -78,13 +90,46 @@ usage () {
 	echo "Usage: $SCRIPT_NAME <list|create>"
 	echo ""
 	echo " Commands"
-	echo "    list   -List aliases"
-	echo "    create <alias> <destination-emails>   -Creates an alias with comma separated destination emals"
+	echo "    list-alias <domain>				-List all aliases for domain"
+	echo "    get-alias <domain>				-Retrive domain aliases"
+	echo "    create <alias> <destination-emails>		-Creates an alias with comma separated destination emails"
 	echo ""
 }
 
+query () {
+        if [[ $TEST == "1" ]]; then
+                output=$(<$SCRIPTPATH/.test)
+                _debug "query: testfile api: $API_KEY"
+        else
+                QUERY="$API_URL$1"
+                _debug "query: $1 api: $API_KEY"
+                output=$(curl -sX GET $QUERY -u $API_KEY:)
+        fi
+}
+
+list_aliases () {
+	#GET /v1/domains/auxarktrading.com/aliases
+	#Querystring Parameter	Required	Type	Description
+	#name	No	String (RegExp supported)	Search for aliases in a domain by name
+	#recipient	No	String (RegExp supported)	Search for aliases in a domain by recipient	
+
+	DOMAIN=$1
+	_debug "args: $@"
+	_debug "domain = $DOMAIN"
+	echo "-- Listing aliases"
+	query "/v1/domains/$DOMAIN/aliases"
+	echo ${output[@]} | jq -r '.[].name' | xargs -i echo {}@$DOMAIN
+}
+
+getalias () {
+	# GET /v1/domains/:domain_name/aliases/:alias_id
+	# curl https://api.forwardemail.net/v1/domains/:domain_name/aliases/:alias_id -u API_TOKEN:
+	echo "-- Getting alias $2"
+}
+
 create_alias () {
-	_debug_all
+	_debug_all $@
+	
 }
 
 # --------------
@@ -94,13 +139,32 @@ create_alias () {
 args=$@
 if [ ! $1 ]; then
         usage
+        exit
 fi
 
-if [[ $1 == 'create' ]]; then
-	if [[ ! -n $2 ]] || [[ ! -n $3 ]]; then
-		usage
-		exit
-	fi
+if [[ -f ~/.feapi ]]; then
+	_success "Found ~/.feapi"
+        source ~/.feapi
+        if [[ $API_KEY ]]; then
+        	_success "Found API key."
+        else
+        	_error "No API key found."
+        fi
+else
+	_error "No ~/.feapi file exists, no token."
+fi
+
+if [[ $1 == "list-aliases" ]]; then
+	if [[ ! -n $2 ]];then usage;exit;fi
+	list_aliases $2
+elif [[ $1 == "getalias" ]]; then
+	if [[ ! -n $2 ]];then usage;exit;fi
+	echo ""
+
+elif [[ $1 == 'create' ]]; then
+	if [[ ! -n $2 ]] || [[ ! -n $3 ]]; then usage; exit;fi
 	echo "-- Creating alias $2 with emails $3"
 	create_alias $2 $3
+else
+	usage
 fi
