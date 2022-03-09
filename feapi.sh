@@ -13,10 +13,6 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 API_URL="https://api.forwardemail.net"
 REQUIRED_APPS=("jq" "column")
 TEST=$(<$SCRIPTPATH/.test)
-TEST_GET=$(<$SCRIPTPATH/.test_get)
-TEST_POST=$(<$SCRIPTPATH/.test_post)
-TEST_ERROR=$(<$SCRIPTPATH/.test_error)
-TEST_CREATE=$(<$SCRIPTPATH/.test_create)
 
 
 # ----------------
@@ -97,16 +93,16 @@ _debug_all $@
 
 if [[ $TEST == "1" ]]; then
         _debug "Testing get using .test_get file"
-        TEST_FILE=$(<$SCRIPTPATH/.test_get)
+        TEST_FILE=$(<$SCRIPTPATH/tests/.test_get)
 elif [[ $TEST == "2" ]]; then
 	_debug "Testing post using .test_post file"
-	TEST_FILE=$(<$SCRIPTPATH/.test_post)
+	TEST_FILE=$(<$SCRIPTPATH/tests/.test_post)
 elif [[ $TEST == "3" ]]; then
         _debug "Testing error using .test_error file"
-        TEST_FILE=$(<$SCRIPTPATH/.test_error)
+        TEST_FILE=$(<$SCRIPTPATH/tests/.test_error)
 elif [[ $TEST == "4" ]]; then
         _debug "Testing create-alias using .test_create file"
-        TEST_FILE=$(<$SCRIPTPATH/.test_create)
+        TEST_FILE=$(<$SCRIPTPATH/tests/.test_create)
 else
         _debug "Testing mode off -- .test=$TEST"
 fi
@@ -122,7 +118,9 @@ usage () {
 	echo " Commands"
 	echo "    list-aliases <domain>				-List all aliases for domain"
 	echo "    get-alias <email alias>				-Retrive specific domain alias"
-	echo "    create-alias <email alias> <destination-emails>		-Creates an alias with comma separated destination emails"
+	echo "    create-alias <email alias> <destination-emails>	-Creates an alias with comma separated destination emails"
+	echo "    delete-alias <email alias>				-Deletes an alias"
+	echo "    tests						-List all test codes"
 	echo ""
 }
 
@@ -271,10 +269,20 @@ get_alias () {
         echo ${output[@]} | jq -r '(["ID","ENABLED","NAME","RECIPIENTS","DESCRIPTION"] | (., map(length*"-"))), [.id, .is_enabled, .name,(.recipients|join(",")),.description]|@tsv' | column -t
 }
 
-test () {
-	#cat $SCRIPTPATH/.test_post
-	output=$TEST_FILE
-	echo $output
+tests () {
+	echo "Current Test Value = $TEST"
+	echo ""
+	echo "Test 0 = Testing Disabled"
+        echo "Test 1 = .test_get"
+	echo "Test 2 = .test_post"
+	echo "Test 3 = .test_error"
+	echo "Test 4 = .test_create"
+	echo "Test 5 = .test_delete"
+	if [[ $1 ]]; then
+		echo ""
+		echo "Changing test value to $1"
+		echo "$1" > $SCRIPTPATH/.test
+	fi
 }
 
 # --------------
@@ -310,8 +318,8 @@ elif [[ $1 == "get-alias" ]]; then
 elif [[ $1 == 'create-alias' ]]; then
 	if [[ ! -n $2 ]] || [[ ! -n $3 ]]; then usage; exit;fi
 	create_alias $2 $3
-elif [[ $1 == "test" ]]; then
-	test
+elif [[ $1 == "tests" ]]; then
+	tests $2
 else
 	usage
 fi

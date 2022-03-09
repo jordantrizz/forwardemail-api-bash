@@ -1,5 +1,0 @@
-{
-  "statusCode": 400,
-  "error": "Bad Request",
-  "message": "Alias already exists for domain."
-}
