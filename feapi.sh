@@ -168,8 +168,8 @@ curl_get () {
 curl_post () {
 	QUERY=$1
 	ALIAS=$2	
-        shift 2
-        EMAILS=$@
+        EMAILS=$3
+        ENABLED=$4
         CURL_QUERY="$API_URL$QUERY"
 
 	_debug "curl_post"
@@ -184,12 +184,13 @@ curl_post () {
 		echo "curl -sX POST $CURL_QUERY -u $API_KEY: \\"
 		echo "-d \"name=$ALIAS\" \\"
 		echo "-d \"recipients=$EMAILS\""
+		echo "-d \"$4\""
 		echo ""
 		output=$TEST_FILE
         else
 		_debug "query: $QUERY alias:$ALIAS emails:${EMAILS[@]}"
-		_debug "cmd: curl -sX POST $CURL_QUERY -u $API_KEY: -d \"name=$ALIAS\" -d \"recipients=$EMAILS\""
-	        output=$(curl -sX POST $CURL_QUERY -u $API_KEY: -d "name=$ALIAS" -d "recipients=$EMAILS")
+		_debug "cmd: curl -sX POST $CURL_QUERY -u $API_KEY: -d \"name=$ALIAS\" -d \"recipients=$EMAILS\" -d \"$ENABLED\""
+	        output=$(curl -sX POST $CURL_QUERY -u $API_KEY: -d "name=$ALIAS" -d "recipients=$EMAILS" -d "$ENABLED")
         fi
 
 	_debug "output"
@@ -247,8 +248,8 @@ create_alias () {
 	
 	# Create alias
         echo "-- Creating alias"
-        curl_post "/v1/domains/$DOMAIN/aliases" "$ALIAS" "$EMAILS"
-        echo ${output[@]} | jq -r '(["ID","ENABLED","NAME","RECIPIENTS"] | (., map(length*"-"))), (.[]| [.id, .is_enabled, .name,(.recipients|join(","))])|@tsv' | column -t
+        curl_post "/v1/domains/$DOMAIN/aliases" "$ALIAS" "$EMAILS" "is_enabled=true"
+        echo ${output[@]} | jq -r '(["ID","ENABLED","NAME","RECIPIENTS"] | (., map(length*"-"))), [.id, .is_enabled, .name,(.recipients|join(","))]|@tsv' | column -t
 }
 
 get_alias () {
@@ -267,7 +268,7 @@ get_alias () {
 	curl_get "/v1/domains/$DOMAIN/aliases/$ALIAS"
         echo "Alias $@"
         echo "-----------"
-        echo ${output[@]}
+        echo ${output[@]} | jq -r '(["ID","ENABLED","NAME","RECIPIENTS","DESCRIPTION"] | (., map(length*"-"))), [.id, .is_enabled, .name,(.recipients|join(",")),.description]|@tsv' | column -t
 }
 
 test () {
