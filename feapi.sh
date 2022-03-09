@@ -7,19 +7,22 @@
 # ------------
 # -- Variables
 # ------------
+VERSION="0.1.1"
 SCRIPT_NAME=feapi
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 API_URL="https://api.forwardemail.net"
 REQUIRED_APPS=("jq" "column")
-TEST=$(<$SCRIPTPATH/.test)
-DEBUG=$(<$SCRIPTPATH/.debug)
+[[ -f .test ]] && TEST=$(<$SCRIPTPATH/.test) || TEST="0"
+[[ -f .debug ]] && DEBUG=$(<$SCRIPTPATH/.debug) || DEBUG="0"
+[[ -z $DEBUG ]] && DEBUG="0"
+[[ -z $TEST ]] && TEST="0"
 
 # ----------------
 # -- Key Functions
 # ----------------
 _debug () {
-        if [ -f .debug ] && (( $DEBUG >= "1" )); then
+        if [[ -f .debug ]] && (( $DEBUG >= "1" )); then
                 echo -e "${CCYAN}**** DEBUG $@${NC}"
         fi
 }
