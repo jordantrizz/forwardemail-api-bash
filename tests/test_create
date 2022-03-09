@@ -1,0 +1,55 @@
+{
+  "user": {
+    "plan": "enhanced_protection",
+    "email": "j@test.com",
+    "full_email": "j@test.com",
+    "display_name": "j@test.com",
+    "last_locale": "en",
+    "address_country": "None",
+    "id": "613964e83d267a22d0494b05",
+    "object": "user",
+    "updated_at": "2022-03-08T19:12:48.869Z",
+    "created_at": "2021-09-09T01:35:37.466Z",
+    "address_html": ""
+  },
+  "domain": {
+    "has_adult_content_protection": false,
+    "has_phishing_protection": false,
+    "has_executable_protection": false,
+    "has_virus_protection": false,
+    "plan": "enhanced_protection",
+    "max_recipients_per_alias": 10,
+    "smtp_port": "25",
+    "members": [
+      {
+        "group": "admin",
+        "user": {
+          "email": "j@test.com",
+          "display_name": "j@test.com",
+          "id": "613964e83d267a22d0494b05"
+        },
+        "alias_count": 14
+      }
+    ],
+    "name": "testdomain.com",
+    "has_mx_record": true,
+    "has_txt_record": true,
+    "verification_record": "14lBRc4Bqq",
+    "id": "613966203d267a22d0494c0a",
+    "object": "domain",
+    "updated_at": "2021-10-19T21:33:26.343Z",
+    "created_at": "2021-09-09T01:40:50.601Z"
+  },
+  "name": "test4",
+  "description": null,
+  "is_enabled": false,
+  "recipients": [
+    "j@test.com",
+    "test@test.com"
+  ],
+  "id": "62281805308769fe8cbabee5",
+  "object": "alias",
+  "locale": "en",
+  "updated_at": "2022-03-09T02:59:17.907Z",
+  "created_at": "2022-03-09T02:59:17.907Z"
+}
